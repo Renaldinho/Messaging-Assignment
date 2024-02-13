@@ -40,14 +40,13 @@ public class OrderService
     Console.WriteLine($"Received new order from customer {order.CustomerId}");
     var orderResponse = new OrderResponseMessage
     {
-        CustomerId = order.CustomerId,
         Status = "Order completed"
     };
     
     // Send the order completion to the customer using the customer ID as the topic
-    Console.WriteLine($"Sending order completion to customer {orderResponse.CustomerId}");
+    Console.WriteLine($"Sending order completion to customer {order.CustomerId}");
     _orderCompletionClient.SendUsingTopic<OrderResponseMessage>(orderResponse,
-        orderResponse.CustomerId);
+        order.CustomerId);
   }
   
   private void HandleOrderCompletion(OrderResponseMessage order)

@@ -7,18 +7,16 @@ namespace StoreAPI.Controllers;
 
 internal static class MessageWaiter
 {
-    public static async Task<T?>? WaitForMessage<T>(MessageClient<T> messageClient, string clientId, int timeout = 5000)
+    public static async Task<T?> WaitForMessage<T>(MessageClient<T> messageClient, string clientId, int timeout = 10000) where T : class
     {
         var tcs = new TaskCompletionSource<T?>();
         var cancellationTokenSource = new CancellationTokenSource(timeout);
         cancellationTokenSource.Token.Register(() => tcs.TrySetResult(default));
-        
-        using (
-            var connection = messageClient.ListenUsingTopic<T>(message =>
-            {
-                tcs.TrySetResult(message);
-            }, "customer" + clientId, clientId)
-        )
+
+        using (var connection = messageClient.ListenUsingTopic<T>(message =>
+               {
+                   tcs.TrySetResult(message);
+               }, "customer" + clientId, clientId))
         {
         }
 
@@ -40,19 +38,30 @@ public class OrderController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<ActionResult<string>> PostOrder(Order order)
+    public async Task<ActionResult<string>> PostOrder(OrderRequest orderRequest)
     {
         // Sends new order request message using 'newOrder' topic
         _orderRequestMessageClient.SendUsingTopic(new OrderRequestMessage
         {
-            CustomerId = order.CustomerId,
+            CustomerId = orderRequest.CustomerId,
             Status = "Order received."
         }, "newOrder");
         
         // Waits for 'OrderResponseMessage' using 'customerId' topic
-        var response = await MessageWaiter.WaitForMessage(_orderResponseMessageClient, order.CustomerId)!;
+        var response = await MessageWaiter.WaitForMessage(_orderResponseMessageClient, orderRequest.CustomerId)!;
         
-        // Returns the status of the order
-        return response != null ? response.Status : "Order timed out.";
+        if (response != null)
+        {
+            // Map the response to the API's OrderResponse model
+            var apiResponse = new OrderResponse
+            {
+                Status = response.Status
+            };
+            return Ok(apiResponse);
+        }
+        else
+        {
+            return StatusCode(408, new OrderResponse { Status = "Order timed out." });
+        }
     }
 }
