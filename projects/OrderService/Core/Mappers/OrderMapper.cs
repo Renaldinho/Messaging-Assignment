@@ -16,9 +16,17 @@ public class OrderRequestMapper : IMapper<OrderRequestMessage, Order>
 
     public Order Map(OrderRequestMessage model)
     {
-        return new Order
+        var order = new Order
         {
+            CustomerId = model.CustomerId,
+            OrderItems = model.OrderItems.Select(oi => new OrderItem
+            {
+                ProductId = oi.ProductId,
+                Quantity = oi.Quantity
+            }).ToList()
         };
+
+        return order;
     }
 }
 

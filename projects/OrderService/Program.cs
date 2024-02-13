@@ -7,7 +7,7 @@
       var orderService = OrderServiceFactory.CreateOrderService();
       orderService.Start();      
       
-      Console.WriteLine("Order Service started. Press any key to exit.");
+      Console.WriteLine("Order Service started. Press any key to exit. updated");
             
       var running = true;
       AppDomain.CurrentDomain.ProcessExit += (sender, eventArgs) =>

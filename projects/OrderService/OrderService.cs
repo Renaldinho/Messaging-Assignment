@@ -36,6 +36,10 @@ public class OrderService
      * - Send the order to the stock service
      */
     
+    _orderService.CreateOrder(order);
+    Console.WriteLine("created order");
+    Console.WriteLine(_orderService.GetAllOrders());
+    
     // Create new OrderResponseMessage
     Console.WriteLine($"Received new order from customer {order.CustomerId}");
     var orderResponse = new OrderResponseMessage

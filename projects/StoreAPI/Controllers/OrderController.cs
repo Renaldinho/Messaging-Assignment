@@ -38,13 +38,12 @@ public class OrderController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<ActionResult<string>> PostOrder(OrderRequest orderRequest)
+    public async Task<ActionResult<string>> PostOrder(OrderRequestMessage orderRequest)
     {
         // Sends new order request message using 'newOrder' topic
         _orderRequestMessageClient.SendUsingTopic(new OrderRequestMessage
         {
             CustomerId = orderRequest.CustomerId,
-            Status = "Order received."
         }, "newOrder");
         
         // Waits for 'OrderResponseMessage' using 'customerId' topic
@@ -52,12 +51,7 @@ public class OrderController : ControllerBase
         
         if (response != null)
         {
-            // Map the response to the API's OrderResponse model
-            var apiResponse = new OrderResponse
-            {
-                Status = response.Status
-            };
-            return Ok(apiResponse);
+            return Ok(response);
         }
         else
         {
